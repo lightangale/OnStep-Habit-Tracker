@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+     <!-- Header Section -->
+    <header class="header">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="Logo">
+        </div>
+        <nav id="nav-links">
+            <a href="index.html">Home</a>
+            <div class="dropdown">
+                <a href="features.html" class="test">Features</a>
+                <div class="dropdown-content">
+                    <a href="progress.html">Progress</a>
+                    <a href="daily.html">Daily Check-in</a>
+                    <a href="todo.html">Tasks</a>
+                    <a href="habit.html">Habits</a>
+                    <a href="timer.html">Timer</a>
+                    <a href="notes.html">Notes</a>
+                    <a href="mood.html">Mood Tracker</a>
+                </div>
+            </div>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+
+    <!-- Notes Section -->
+    <div class="notes-container">
+        <h1>Notes</h1>
+        <p>Add a new note</p>
+        <button class="btn" onclick="newNote()">+</button>
+        <div id="notes"></div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", loadNotes); // Load notes on page load
+        
+        function newNote(text = "", color = "#f5fcff") {
+            let note = document.createElement("div");
+            note.className = "note";
+            note.style.backgroundColor = color; // Apply saved color or default
+
+            let textarea = document.createElement("textarea");
+            textarea.placeholder = "Write your note...";
+            textarea.value = text;
+            textarea.oninput = saveNotes;
+            let deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-btn";
+            deleteBtn.innerText = "X";
+            deleteBtn.onclick = function () {
+                note.remove();
+                saveNotes();
+            };
+
+            let colourSelector = document.createElement("div");
+            colourSelector.className = "colour-selector";
+
+            let colourButton = document.createElement("button");
+            colourButton.className = "colourbtn";
+            colourButton.innerText = "🎨";
+
+            let colourContent = document.createElement("div");
+            colourContent.className = "colour-content";
+
+            let colors = ["#f9b3c9", "#cfb3f9", "#b3f9cd", "#feb990", "#77d7fa", "#f5fcff"];
+            colors.forEach(color => {
+                let colourOption = document.createElement("a");
+                colourOption.style.backgroundColor = color;
+                colourOption.onclick = function () {
+                    note.style.backgroundColor = color;
+                    saveNotes();
+                };
+                colourContent.appendChild(colourOption);
+            });
+
+            colourSelector.appendChild(colourButton);
+            colourSelector.appendChild(colourContent);
+
+            colourButton.onclick = function (event) {
+                event.stopPropagation();
+                colourContent.style.display = (colourContent.style.display === "block") ? "none" : "block";
+            };
+
+            document.addEventListener("click", function (event) {
+                if (!colourSelector.contains(event.target)) {
+                    colourContent.style.display = "none";
+                }
+        
+            });
+
+            note.appendChild(deleteBtn);
+            note.appendChild(textarea);
+            note.appendChild(colourSelector);
+            document.getElementById("notes").appendChild(note);
+            adjustContainerHeight();
+            saveNotes();
+        }
+
+        function saveNotes() {
+            let notes = [];
+            document.querySelectorAll(".note").forEach(note => {
+                let text = note.querySelector("textarea").value;
+                let color = note.style.backgroundColor;
+                notes.push({ text, color }); 
+            });
+            localStorage.setItem("notes", JSON.stringify(notes));
+        }
+        function adjustContainerHeight() {
+            let notesContainer = document.querySelector(".notes-container");
+            let notesSection = document.getElementById("notes");
+            notesContainer.style.minHeight = notesSection.scrollHeight + 250 + "px"; 
+        }
+        
+        function loadNotes() {
+            let savedNotes = JSON.parse(localStorage.getItem("notes")) || [];
+            savedNotes.forEach(note => newNote(note.text, note.color));
+        }
+    </script>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="social-media">
+            <p>Follow us:</p>
+            <a href="https://www.facebook.com" target="_blank">Facebook</a>
+            <a href="https://www.twitter.com" target="_blank">Twitter</a>
+            <a href="https://www.instagram.com" target="_blank">Instagram</a>
+        </div>
+    </footer>
+    <section class="background">
+    </section>
+</body>
+</html>

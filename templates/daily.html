@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="../static/style.css">  <!-- Fixed path -->
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="Logo">  <!-- Fixed path -->
+        </div>
+        <nav id="nav-links">
+            <a href="index.html">Home</a>
+            <div class="dropdown">
+                <a href="features.html" class="test">Features</a>
+                <div class="dropdown-content">
+                    <a href="progress.html">Progress</a>
+                    <a href="daily.html">Daily Check-in</a>
+                    <a href="todo.html">Tasks</a>
+                    <a href="habit.html">Habits</a>
+                    <a href="timer.html">Timer</a>
+                    <a href="notes.html">Notes</a>
+                    <a href="mood.html">Mood Tracker</a>
+                </div>
+            </div>
+            <a href="profile.html">Profile</a>
+        </nav>  
+    </header>
+
+    <div class="streak">Streak <span id="streak-count">0</span></div>
+
+<div class="daily-container">
+    <div class="month-nav">
+        <button id="prev-month">&lt;</button>  
+        <button id="month-display">March 2025</button> 
+        <button id="next-month">&gt;</button>  
+    </div>
+    <div class="calendar" id="calendar"></div>
+    <p style="color: #434c6a;">
+        If you were satisfied with today, make sure to check-in and mark the occasion!🌸<br> 
+        Be honest with yourself.
+    </p>
+</div>
+
+<script>
+    let today = new Date();
+    let currentMonth = today.getMonth() + 1; // 1-based index
+    let currentYear = today.getFullYear();
+    const day = today.getDate();
+    const m_31 = new Set([1, 3, 5, 7, 8, 10, 12]);
+
+    const calendarDiv = document.getElementById("calendar");
+    const monthDisplay = document.getElementById("month-display");
+    const streakDisplay = document.getElementById("streak-count");
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    function getCheckIns() {
+        return JSON.parse(localStorage.getItem("checkIns")) || {};
+    }
+
+    function saveCheckIns(checkIns) {
+        localStorage.setItem("checkIns", JSON.stringify(checkIns));
+    }
+
+    function updateCalendar() {
+        calendarDiv.innerHTML = ""; // Clear previous month
+        monthDisplay.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+        
+        let checkIns = getCheckIns();
+
+        function printMonth(n) {
+            for (let i = 1; i <= n; i++) {
+                const dayDiv = document.createElement("div");
+                dayDiv.classList.add("day");
+                dayDiv.textContent = i;
+
+                const dateKey = `${currentYear}-${currentMonth}-${i}`;
+                const isPast = new Date(currentYear, currentMonth - 1, i) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const isFuture = new Date(currentYear, currentMonth - 1, i) > new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                const isToday = i === day && currentMonth === today.getMonth() + 1 && currentYear === today.getFullYear();
+
+                if (checkIns[dateKey]) {
+                    dayDiv.classList.add("checked-in"); // Keep checked-in color
+                }
+
+                if (isToday) {
+                    dayDiv.classList.add("today");
+                    dayDiv.addEventListener("click", () => {
+                        if (checkIns[dateKey]) {
+                            delete checkIns[dateKey]; // Uncheck today
+                        } else {
+                            alert("Check-in successfull!");
+                            checkIns[dateKey] = true; // Check-in today
+                        }
+                        saveCheckIns(checkIns);
+                        updateCalendar();
+                        updateStreak();
+                    });
+                
+
+                } else if (isPast) {
+                    dayDiv.classList.add("past"); // No interaction with past days
+                } else if (isFuture) {
+                    dayDiv.classList.add("future"); // No interaction with future days
+                }
+
+                calendarDiv.appendChild(dayDiv);
+            }
+        }
+
+        let leap = (currentYear % 4 === 0 && currentYear % 100 !== 0) || (currentYear % 400 === 0);
+        if (m_31.has(currentMonth)) {
+            printMonth(31);
+        } else if (currentMonth === 2) {
+            printMonth(leap ? 29 : 28);
+        } else {
+            printMonth(30);
+        }
+    }
+
+    function updateStreak() {
+        let checkIns = getCheckIns();
+        let streak = 0;
+        let prevDate = null;
+
+        Object.keys(checkIns)
+            .sort((a, b) => new Date(a) - new Date(b)) // Sort dates
+            .forEach(date => {
+                let currDate = new Date(date);
+                if (!prevDate || (currDate - prevDate) === 86400000) {
+                    streak++; 
+                } else {
+                    streak = 0; 
+                }
+                prevDate = currDate;
+            });
+
+        streakDisplay.textContent = streak;
+    }
+
+    document.getElementById("prev-month").addEventListener("click", () => {
+        currentMonth--;
+        if (currentMonth < 1) {
+            currentMonth = 12;
+            currentYear--;
+        }
+        updateCalendar();
+    });
+
+    document.getElementById("next-month").addEventListener("click", () => {
+        currentMonth++;
+        if (currentMonth > 12) {
+            currentMonth = 1;
+            currentYear++;
+        }
+        updateCalendar();
+    });
+
+    document.getElementById("month-display").addEventListener("click", () => {
+        currentMonth = today.getMonth() + 1;
+        currentYear = today.getFullYear(); 
+        updateCalendar();  
+    });
+
+    updateCalendar();
+    updateStreak();
+</script>
+
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="social-media">
+            <p>Follow us:</p>
+            <a href="https://www.facebook.com" target="_blank">Facebook</a>
+            <a href="https://www.twitter.com" target="_blank">Twitter</a>
+            <a href="https://www.instagram.com" target="_blank">Instagram</a>
+        </div>
+    </footer>
+
+    <section class="background"></section>
+
+</body>
+</html>

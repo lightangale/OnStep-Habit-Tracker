@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="../static/style.css"> <!-- Fixed path -->
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="Logo"> <!-- Fixed path -->
+        </div>
+        <nav id="nav-links">
+            <a href="index.html">Home</a>
+            <div class="dropdown">
+                <a href="features.html" class="test">Features</a>
+                <div class="dropdown-content">
+                    <a href="progress.html">Progress</a>
+                    <a href="daily.html">Daily Check-in</a>
+                    <a href="todo.html">Tasks</a>
+                    <a href="habit.html">Habits</a>
+                    <a href="timer.html">Timer</a>
+                    <a href="notes.html">Notes</a>
+                    <a href="mood.html">Mood Tracker</a>
+                </div>
+            </div>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+
+    <!-- Timer Section -->
+    <div class="timer-section">
+        <div class="timer-container">
+            <div class="predefined-timer">
+                <!-- Work Time Dropdown -->
+                <div class="timer-dropdown">
+                    <h2>Choose time from the dropdown!</h2>
+                    <button class="timer-dropbtn">Choose work time</button>
+                    <div class="timer-dropdown-content">
+                        <a onclick="applyTime('25', null)">25 min</a>
+                        <a onclick="applyTime('45', null)">45 min</a>
+                        <a onclick="applyTime('60', null)">1 hour</a>
+                    </div>
+                </div>
+
+                <!-- Break Time Dropdown -->
+                <div class="timer-dropdown">
+                    <button class="timer-dropbtn">Choose break time</button>
+                    <div class="timer-dropdown-content">
+                        <a onclick="applyTime(null, '5')">5 min</a>
+                        <a onclick="applyTime(null, '10')">10 min</a>
+                        <a onclick="applyTime(null, '20')">20 min</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Time Inputs -->
+            <div class="custom-timer">
+                <div class="timer-dropdown">
+                    <h2>Or, set a custom time!</h2>
+                    <input type="text" id="customWorkTime" placeholder="Work time">
+                    <input type="text" id="customBreakTime" placeholder="Break time">
+                </div>
+            </div>
+
+            <!-- Cycle Count -->
+            <div class="timer-dropdown">
+                <h2>Enter the number of cycles!</h2>
+                <select id="cycleCount">
+                    <option value="1">1 cycle</option>
+                    <option value="2">2 cycles</option>
+                    <option value="3">3 cycles</option>
+                    <option value="4">4 cycles</option>
+                    <option value="5">5 cycles</option>
+                </select>
+            </div>
+
+            <!-- Set Time Button -->
+            <button onclick="applyTime()" class="btn">Set Time</button>
+
+            <!-- Display Chosen Time -->
+            <div class="chosen-time">
+                Work time (in min): <span id="displayWorkTime">Not set</span><br>
+                Break time (in min): <span id="displayBreakTime">Not set</span><br>
+                Cycles: <span id="displaycycle">1</span>
+            </div>
+
+            <!-- Timer Display and Controls -->
+            <div class="count-buttons">
+                <div class="cycle">Cycle: 1</div>
+                <div class="phase">Time to work!</div>
+                <div class="count">00:00</div>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 10px;">
+                    <button onclick="start()" class="btn" style="width: 20%;">▶️</button>
+                    <button onclick="pause()" class="btn" style="width: 20%;">⏯️</button>
+                    
+                    <button onclick="stopTimer()" class="btn" style="width: 20%;">⏹️</button>
+                    <button onclick="openTimerWindow()" class="btn" style="width: 20%;">🌸</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="social-media">
+            <p>Follow us:</p>
+            <a href="https://www.facebook.com" target="_blank">Facebook</a>
+            <a href="https://www.twitter.com" target="_blank">Twitter</a>
+            <a href="https://www.instagram.com" target="_blank">Instagram</a>
+        </div>
+    </footer>
+
+    <section class="background"></section>
+
+    <script>
+        let selectedWorkTime = 0, selectedBreakTime = 0, cycles = 1;
+        let timer, isPaused = false, remainingTime = 0, currentPhase = "work", currentCycle = 0;
+        let newWindow = null;
+
+        function applyTime(workValue = null, breakValue = null) {
+            if (workValue !== null) selectedWorkTime = parseInt(workValue);
+            if (breakValue !== null) selectedBreakTime = parseInt(breakValue);
+
+            let customWorkTime = parseInt(document.getElementById("customWorkTime").value) || selectedWorkTime;
+            let customBreakTime = parseInt(document.getElementById("customBreakTime").value) || selectedBreakTime;
+            cycles = parseInt(document.getElementById("cycleCount").value) || 1;
+
+            if (customWorkTime > 0) selectedWorkTime = customWorkTime;
+            if (customBreakTime > 0) selectedBreakTime = customBreakTime;
+
+            document.getElementById("displayWorkTime").textContent = selectedWorkTime + " min";
+            document.getElementById("displayBreakTime").textContent = selectedBreakTime + " min";
+            document.getElementById("displaycycle").textContent = cycles;
+            
+        }
+
+        function start() {
+            if (selectedWorkTime <= 0 || selectedBreakTime <= 0 || cycles <= 0) {
+                alert("Please set valid work time, break time, and cycles.");
+                return;
+            }
+
+            if (timer) clearInterval(timer);
+            isPaused = false;
+            remainingTime = selectedWorkTime * 60;
+            currentPhase = "work";
+            currentCycle = 0;
+            runTimer();
+        }
+
+        function runTimer() {
+            if (currentCycle >= cycles) {
+                document.querySelector(".count").textContent = "Session Complete!";
+                return;
+            }
+
+            let totalTime = remainingTime;
+            updateDisplay(totalTime); // Update display initially
+
+            timer = setInterval(() => {
+                if (!isPaused) {
+                    if (totalTime > 0) {
+                        totalTime--;
+                        updateDisplay(totalTime);
+                    } else {
+                        clearInterval(timer);
+                        if (currentPhase === "work") {
+                            currentPhase = "break";
+                            remainingTime = selectedBreakTime * 60;
+                        } else {
+                            currentPhase = "work";
+                            remainingTime = selectedWorkTime * 60;
+                            currentCycle++;
+                        }
+                        setTimeout(runTimer, 1000);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateDisplay(timeLeft) {
+            let phaseText = currentPhase === "work" ? "Time to work!" : "Time for a break!";
+            document.querySelector(".cycle").textContent = `Cycle: ${currentCycle + 1}`;
+            document.querySelector(".phase").textContent = phaseText;
+            document.querySelector(".count").textContent = formatTime(timeLeft);
+
+            if (newWindow) {
+                newWindow.document.querySelector(".cycle").textContent = `Cycle: ${currentCycle + 1}`;
+                newWindow.document.querySelector(".phase").textContent = phaseText;
+                newWindow.document.querySelector(".count").textContent = formatTime(timeLeft);
+            }
+        }
+
+        function pause() { isPaused = !isPaused; }
+
+        function stopTimer() {
+            clearInterval(timer);
+            document.querySelector(".count").textContent = "Timer stopped";
+            remainingTime = 0;
+            currentCycle = 0;
+        }
+
+
+        function formatTime(seconds) {
+            let min = Math.floor(seconds / 60);
+            let sec = seconds % 60;
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function openTimerWindow() {
+            newWindow = window.open("", "Timer", "width=300,height=200");
+            newWindow.document.write(`
+                <html>
+                <head>
+                    <title>Timer</title>
+                    <style>
+                        body {
+                            background-color: #fe89ae;
+                            text-align: center;
+                            font-family: Arial, sans-serif;
+                        }
+                        .count {
+                            font-size: 24px;
+                            font-weight: bold;
+                            margin: 10px 0;
+                        }
+                        button {
+                            margin: 5px;
+                            padding: 5px 10px;
+                            font-size: 14px;
+                            border: none;
+                            cursor: pointer;
+                            background-color: white;
+                            border-radius: 5px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>Timer</h2>
+                    <div class='cycle'>Cycle: ${currentCycle + 1}</div>
+                    <div class='phase'>${currentPhase === "work" ? "Time to work!" : "Time for a break!"}</div>
+                    <div class='count'>${formatTime(remainingTime)}</div>
+                    <button onclick="window.opener.start()">Restart</button>
+                    <button onclick="window.opener.pause()">Start/Pause</button>
+                    <button onclick="window.opener.stopTimer()">Stop</button>
+                </body>
+                </html>
+            `);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body onload="setToday()">
+    <div class="background"></div>
+    <header class="header">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="Logo">
+        </div>
+        <nav id="nav-links">
+            <a href="index.html">Home</a>
+            <div class="dropdown">
+                <a href="features.html" class="test">Features</a>
+                <div class="dropdown-content">
+                    <a href="progress.html">Progress</a>
+                    <a href="daily.html">Daily Check-in</a>
+                    <a href="todo.html">Tasks</a>
+                    <a href="habit.html">Habits</a>
+                    <a href="timer.html">Timer</a>
+                    <a href="notes.html">Notes</a>
+                    <a href="mood.html">Mood Tracker</a>
+                </div>
+            </div>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
+
+    <div id="habit-section">
+        <h1>Habits</h1>
+        <p>Habits are repeated every day! Set new goals now!</p>
+        <input type="text" id="habit-input" placeholder="Add a habit">
+        <button onclick="addHabit()" class="btn">Add Habit</button>
+        <ul id="habit-list" class="habit-list"></ul>
+    </div>
+
+    <div id="tasks-container">
+        <div class="weekdays">
+            <button class="day-tab" onclick="showDay('Monday')">Monday</button>
+            <button class="day-tab" onclick="showDay('Tuesday')">Tuesday</button>
+            <button class="day-tab" onclick="showDay('Wednesday')">Wednesday</button>
+            <button class="day-tab" onclick="showDay('Thursday')">Thursday</button>
+            <button class="day-tab" onclick="showDay('Friday')">Friday</button>
+            <button class="day-tab" onclick="showDay('Saturday')">Saturday</button>
+            <button class="day-tab" onclick="showDay('Sunday')">Sunday</button>
+        </div>
+
+        <div id="tasks-per-day">
+            <h1 id="selected-day">Monday</h1>
+            <h2>Habits</h2>
+            <ul id="habit-task-list"></ul>
+            <h2>Daily Plans</h2>
+            <input type="text" id="task-input" placeholder="Add a plan">
+            <button onclick="addTask()" class="btn">Add Plan</button>
+            <ul id="task-list"></ul>
+        </div>
+    </div>
+
+    <div id="counts">
+        <p>Total Tasks: <span id="total-tasks">0</span></p>
+        <p>Completed Tasks: <span id="completed-tasks">0</span></p>
+        <p>Total Habits: <span id="total-habits">0</span></p>
+        <p>Completed Habits: <span id="completed-habits">0</span></p>
+    </div>
+
+    <footer class="footer">
+        <div class="social-media">
+            <p>Follow us:</p>
+            <a href="https://www.facebook.com" target="_blank">Facebook</a>
+            <a href="https://www.twitter.com" target="_blank">Twitter</a>
+            <a href="https://www.instagram.com" target="_blank">Instagram</a>
+        </div>
+    </footer>
+<script>
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
+    let habits = JSON.parse(localStorage.getItem("habits")) || [];
+    let completedTasks = parseInt(localStorage.getItem("completedTasks")) || 0;
+    let completedHabits = parseInt(localStorage.getItem("completedHabits")) || 0;
+
+function saveData() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    localStorage.setItem("habits", JSON.stringify(habits));
+    localStorage.setItem("completedTasks", completedTasks);
+    localStorage.setItem("completedHabits", completedHabits);
+}
+
+function setToday() {
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const today = new Date().getDay();
+    document.getElementById("selected-day").innerText = days[today];
+    showDay(days[today]);
+    renderHabits();
+    renderTasks();
+    updateCounts();
+}
+
+function showDay(day) {
+    document.getElementById("selected-day").innerText = day;
+    renderTasks(day);
+}
+
+function addTask() {
+    let day = document.getElementById("selected-day").innerText;
+    let taskInput = document.getElementById("task-input").value.trim();
+    if (taskInput === "") return;
+
+    if (!tasks[day]) tasks[day] = [];
+    tasks[day].push({ text: taskInput, completed: false });
+    document.getElementById("task-input").value = "";
+    saveData();
+    renderTasks(day);
+    updateCounts();
+}
+
+function removeTask(day, index) {
+    if (tasks[day][index].completed) {
+        completedTasks--; // Decrement only if the task was completed
+    }
+    tasks[day].splice(index, 1);
+    if (tasks[day].length === 0) delete tasks[day];
+    saveData();
+    renderTasks(day);
+    updateCounts();
+}
+
+function addHabit() {
+    let habitInput = document.getElementById("habit-input").value.trim();
+    if (habitInput === "") return;
+    habits.push({ text: habitInput, completed: false });
+    document.getElementById("habit-input").value = "";
+    saveData();
+    renderHabits();
+    renderTasks(document.getElementById("selected-day").innerText);
+    updateCounts();
+}
+
+function removeHabit(index) {
+    if (habits[index].completed) {
+        completedHabits--; // Decrement only if the habit was completed
+    }
+    habits.splice(index, 1);
+    saveData();
+    renderHabits();
+    renderTasks(document.getElementById("selected-day").innerText);
+    updateCounts();
+}
+function renderHabits() {
+    let habitList = document.getElementById("habit-list");
+    habitList.innerHTML = "";
+    document.getElementById("total-habits").innerText = habits.length;
+
+    habits.forEach((habit, index) => {
+        let li = document.createElement("li");
+        li.className = "habit-item";
+
+        let span = document.createElement("span");
+        span.textContent = habit.text;
+        span.className = "habit-text";
+
+        let removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove";
+        removeBtn.className = "btn";
+        removeBtn.onclick = function () {
+            removeHabit(index);
+        };
+
+        li.appendChild(span);
+        li.appendChild(removeBtn);
+        habitList.appendChild(li);
+
+        if (habit.completed) {
+            li.classList.add("completed");
+        }
+    });
+}
+
+function renderTasks(day) {
+    let taskList = document.getElementById("task-list");
+    taskList.innerHTML = "";
+    let habitTaskList = document.getElementById("habit-task-list");
+    habitTaskList.innerHTML = "";
+
+    const today = new Date().toLocaleString("en-US", { weekday: "long" });
+
+    // Render habits under weekdays with checkboxes only for today
+    habits.forEach((habit, index) => {
+        let li = document.createElement("li");
+        li.className = "habit-item";
+
+        let span = document.createElement("span");
+        span.textContent = habit.text;
+        span.className = "habit-text";
+
+        let actions = document.createElement("div");
+        actions.className = "habit-actions";
+
+        if (day === today) {
+            let checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.className = "habit-checkbox";
+            checkbox.checked = habit.completed;
+            checkbox.addEventListener("change", function () {
+                if (this.checked) {
+                    completedHabits++; // Increment if habit is marked as completed
+                } else {
+                    completedHabits--; // Decrement if habit is marked as incomplete
+                }
+                habits[index].completed = this.checked;
+                li.classList.toggle("completed", this.checked);
+                saveData();
+                updateCounts();
+            });
+
+            actions.appendChild(checkbox);
+        }
+
+        let removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove";
+        removeBtn.className = "btn";
+        removeBtn.onclick = function () {
+            removeHabit(index);
+        };
+
+        actions.appendChild(removeBtn);
+        li.appendChild(span);
+        li.appendChild(actions);
+        habitTaskList.appendChild(li);
+
+        if (habit.completed) {
+            li.classList.add("completed");
+        }
+    });
+
+    // Render tasks with checkboxes only for today
+    if (tasks[day]) {
+        tasks[day].forEach((task, index) => {
+            let li = document.createElement("li");
+            li.className = "task-item";
+
+            let span = document.createElement("span");
+            span.textContent = task.text;
+            span.className = "task-text";
+
+            let actions = document.createElement("div");
+            actions.className = "task-actions";
+
+            if (day === today) {
+                let checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.className = "task-checkbox";
+                checkbox.checked = task.completed;
+                checkbox.addEventListener("change", function () {
+                    if (this.checked) {
+                        completedTasks++; 
+                    } else {
+                        completedTasks--; 
+                    }
+                    tasks[day][index].completed = this.checked;
+                    li.classList.toggle("completed", this.checked);
+                    saveData();
+                    updateCounts();
+                });
+
+                actions.appendChild(checkbox);
+            }
+
+            let removeBtn = document.createElement("button");
+            removeBtn.textContent = "Remove";
+            removeBtn.className = "btn";
+            removeBtn.onclick = function () {
+                removeTask(day, index);
+            };
+
+            actions.appendChild(removeBtn);
+            li.appendChild(span);
+            li.appendChild(actions);
+            taskList.appendChild(li);
+
+            if (task.completed) {
+                li.classList.add("completed");
+            }
+        });
+    }
+
+    updateCounts();
+}
+function checkForNewDay() {
+    const lastResetDate = localStorage.getItem("lastResetDate");
+    const currentDate = new Date().toLocaleDateString();
+
+    if (lastResetDate !== currentDate) {
+        // It's a new day, reset counts and completion status
+        completedTasks = 0;
+        completedHabits = 0;
+        localStorage.setItem("completedTasks", completedTasks);
+        localStorage.setItem("completedHabits", completedHabits);
+        localStorage.setItem("lastResetDate", currentDate);
+        console.log("New day detected. Counts and completion status reset.");
+    }
+}
+window.onload = function () {
+    renderHabits();
+    renderTasks();
+    setToday();
+    checkForNewDay(); 
+    updateCounts();
+};
+
+function updateCounts() {
+    let completedTasks = parseInt(localStorage.getItem("completedTasks")) || 0;
+    let completedHabits = parseInt(localStorage.getItem("completedHabits")) || 0;
+
+
+    if (completedTasks < 0) {
+        localStorage.setItem("completedTasks", 0);
+        completedTasks = 0;
+    }
+
+    if (completedHabits < 0) {
+        localStorage.setItem("completedHabits", 0);
+        completedHabits = 0;
+    }
+
+    let totalTasks = tasks[document.getElementById("selected-day").innerText] 
+        ? tasks[document.getElementById("selected-day").innerText].length 
+        : 0;
+
+    let totalHabits = habits.length;
+
+    document.getElementById("total-tasks").innerText = totalTasks;
+    document.getElementById("completed-tasks").innerText = completedTasks;
+    document.getElementById("total-habits").innerText = totalHabits;
+    document.getElementById("completed-habits").innerText = completedHabits;
+
+    // Send data to Flask backend
+   fetch("http://127.0.0.1:5000/update_progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            completed_habits: completedHabits,
+            total_habits: totalHabits,
+            completed_tasks: completedTasks,
+            total_tasks: totalTasks
+        })
+    }).then(response => response.json())
+    .then(data => console.log(data.message));
+}
+
+</script>
+</body>
+</html>

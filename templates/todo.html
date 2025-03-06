@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link rel="stylesheet" href="..\static\style.css">
+</head>
+<body>
+     <!-- Header Section -->
+          <header class="header">
+            <div class="logo">
+                <img src="..\static\images\logo.png" alt="Logo">
+            </div>
+            
+            <nav id="nav-links">
+                <a href="index.html">Home</a>
+                <div class="dropdown">
+                    <a href="features.html" class="test">Features</a>
+                    <div class="dropdown-content">
+                        
+                            <a href="progress.html">Progress</a>
+                            <a href="daily.html">Daily Check-in</a>
+                            <a href="todo.html">Tasks</a>
+                            <a href="habit.html">Habits</a>
+                            <a href="timer.html">Timer</a>
+                            <a href="notes.html">Notes</a>
+                            <a href="mood.html">Mood Tracker</a>
+                    </div>
+                  </div>
+                <a href="profile.html">Profile</a>
+            </nav>
+        </header>
+
+
+    <!-- todo Tracker Section -->
+    <section class="tasks">
+        <h2>TASKS</h2>
+        <input type="text" id="todoInput" placeholder="Enter a task">
+    <button onclick="addtodo()">Add</button>
+    <button onclick="removeAlltodos()">Remove All</button> 
+    <ul id="todoList"></ul>
+
+    </section>
+   
+    <!-- Footer Section -->
+    <footer class="footer">
+      
+            <div class="social-media">
+                <p>Follow us:</p>
+                <a href="https://www.facebook.com" target="_blank">Facebook</a>
+                <a href="https://www.twitter.com" target="_blank">Twitter</a>
+                <a href="https://www.instagram.com" target="_blank">Instagram</a>
+            </div>
+        </div>
+    </footer>
+    
+    <section class="background">
+        
+    </section>
+    
+    <script>
+    document.addEventListener("DOMContentLoaded", loadtodos);
+
+        function addtodo() {
+            let input = document.getElementById("todoInput");
+            let todoText = input.value.trim();
+            if (todoText === "") return;
+        
+            let todo = { text: todoText, completed: false };
+            savetodo(todo);
+        
+            createtodoElement(todo);
+            input.value = "";
+        }
+        
+        function createtodoElement(todo) {
+    let li = document.createElement("li");
+    li.className = "todo-item";
+    if (todo.completed) li.classList.add("completed");
+
+    // Create text
+    let span = document.createElement("span");
+    span.textContent = todo.text;
+    span.className = "todo-text";
+
+    // Create actions container
+    let actions = document.createElement("div");
+    actions.className = "todo-actions"; // New wrapper for checkbox & remove button
+
+    // Create checkbox
+    let checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.className = "todo-checkbox";
+    checkbox.checked = todo.completed;
+    checkbox.addEventListener("change", function () {
+        li.classList.toggle("completed");
+        updatetodo(todo.text, checkbox.checked);
+    });
+
+    // Create Remove button
+    let removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove";
+    removeBtn.className = "remove-btn";
+    removeBtn.onclick = function () {
+        removetodo(todo.text, li);
+    };
+
+    // Append checkbox and button to actions div
+    actions.appendChild(checkbox);
+    actions.appendChild(removeBtn);
+
+    // Append elements
+    li.appendChild(span);
+    li.appendChild(actions);
+    document.getElementById("todoList").appendChild(li);
+}
+
+        
+        function savetodo(todo) {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos.push(todo);
+            localStorage.setItem("todos", JSON.stringify(todos));
+        }
+        
+        function updatetodo(text, completed) {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos = todos.map(todo => todo.text === text ? { text, completed } : todo);
+            localStorage.setItem("todos", JSON.stringify(todos));
+        }
+        
+        function removetodo(text, li) {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos = todos.filter(todo => todo.text !== text);
+            localStorage.setItem("todos", JSON.stringify(todos));
+        
+            li.remove(); // Remove from UI
+        }
+        
+        function loadtodos() {
+            let todos = JSON.parse(localStorage.getItem("todos")) || [];
+            todos.forEach(createtodoElement);
+        }
+        
+        // Remove All button functionality
+        function removeAlltodos() {
+            localStorage.removeItem("todos"); // Clear local storage
+            document.getElementById("todoList").innerHTML = ""; // Clear UI
+        }
+        
+    </script>
+ 
+</body>
+</html>
