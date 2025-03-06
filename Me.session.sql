@@ -1,3 +1,4 @@
+-- The below tables will be used for making the graph
 CREATE TABLE habits (
     date VARCHAR(10) PRIMARY KEY,
     habits_completed_today INT DEFAULT 0,
@@ -19,9 +20,7 @@ VALUES ('2025-03-05', 5, 10);
 SELECT * FROM habits;
 SELECT * FROM tasks;
 
-
-TRUNCATE TABLE habits;
-TRUNCATE TABLE tasks;
+-- The below tables will be used for training the model
 
 CREATE TABLE habit_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
