@@ -30,96 +30,71 @@
         </nav>
     </header>
 
-    <!-- Notes Section -->
-    <div class="notes-container">
-        <h1>Mood</h1>
-        <p>How did today go :D</p>
-        <button class="btn" onclick="newNote()">+</button>
-        <div id="notes"></div>
+    <!-- Mood Tracker Section -->
+    <div class="mood-container">
+        <h2>Mood Tracker</h2>
+        <label for="mood">Mood (1-10): <span id="moodValue">5</span></label>
+        <input type="range" id="mood" class="slider" min="1" max="10" value="5" oninput="updateMoodValue()">
+        
+        <label>What do you feel right now?</label>
+        <textarea id="feelings" required></textarea>
+
+        <label>Are you satisfied with today so far?</label>
+        <textarea id="satisfaction" required></textarea>
+
+        <label>What are the things that you did so far?</label>
+        <textarea id="activities" required></textarea>
+
+        <label>Anything of interest happen?</label>
+        <textarea id="interest" required></textarea>
+
+
+        <label>Did you take good care of yourself? (e.g., drank water, ate food, slept well?)</label>
+        <textarea id="selfCare" required></textarea>
+
+        <button onclick="submitForm()">Submit</button>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", loadNotes); // Load notes on page load
-        
-        function newNote(text = "", color = "#f5fcff") {
-            let note = document.createElement("div");
-            note.className = "note";
-            note.style.backgroundColor = color; // Apply saved color or default
+        function updateMoodValue() {
+            document.getElementById('moodValue').innerText = document.getElementById('mood').value;
+        }
 
-            let textarea = document.createElement("textarea");
-            textarea.placeholder = "Write your note...";
-            textarea.value = text;
-            textarea.oninput = saveNotes;
-            let deleteBtn = document.createElement("button");
-            deleteBtn.className = "delete-btn";
-            deleteBtn.innerText = "X";
-            deleteBtn.onclick = function () {
-                note.remove();
-                saveNotes();
+        function submitForm() {
+            const mood = document.getElementById('mood').value;
+            const activities = document.getElementById('activities').value;
+            const satisfaction = document.getElementById('satisfaction').value;
+            const interest = document.getElementById('interest').value;
+            const feelings = document.getElementById('feelings').value;
+            const selfCare = document.getElementById('selfCare').value;
+
+            const response = {
+                mood: mood,
+                activities: activities,
+                satisfaction: satisfaction,
+                interest: interest,
+                feelings: feelings,
+                selfCare: selfCare
             };
 
-            let colourSelector = document.createElement("div");
-            colourSelector.className = "colour-selector";
-
-            let colourButton = document.createElement("button");
-            colourButton.className = "colourbtn";
-            colourButton.innerText = "🎨";
-
-            let colourContent = document.createElement("div");
-            colourContent.className = "colour-content";
-
-            let colors = ["#f9b3c9", "#cfb3f9", "#b3f9cd", "#feb990", "#77d7fa", "#f5fcff"];
-            colors.forEach(color => {
-                let colourOption = document.createElement("a");
-                colourOption.style.backgroundColor = color;
-                colourOption.onclick = function () {
-                    note.style.backgroundColor = color;
-                    saveNotes();
-                };
-                colourContent.appendChild(colourOption);
-            });
-
-            colourSelector.appendChild(colourButton);
-            colourSelector.appendChild(colourContent);
-
-            colourButton.onclick = function (event) {
-                event.stopPropagation();
-                colourContent.style.display = (colourContent.style.display === "block") ? "none" : "block";
-            };
-
-            document.addEventListener("click", function (event) {
-                if (!colourSelector.contains(event.target)) {
-                    colourContent.style.display = "none";
+            console.log("Form Submitted:", response);
+            alert("Your responses have been recorded!");
+            
+            fetch("http://127.0.0.1:5000/mood_tracker", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(response) })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Something went wrong... :(");
                 }
-        
-            });
+                return response.json();
+            })
 
-            note.appendChild(deleteBtn);
-            note.appendChild(textarea);
-            note.appendChild(colourSelector);
-            document.getElementById("notes").appendChild(note);
-            adjustContainerHeight();
-            saveNotes();
-        }
-
-        function saveNotes() {
-            let notes = [];
-            document.querySelectorAll(".note").forEach(note => {
-                let text = note.querySelector("textarea").value;
-                let color = note.style.backgroundColor;
-                notes.push({ text, color }); 
-            });
-            localStorage.setItem("notes", JSON.stringify(notes));
-        }
-        function adjustContainerHeight() {
-            let notesContainer = document.querySelector(".notes-container");
-            let notesSection = document.getElementById("notes");
-            notesContainer.style.minHeight = notesSection.scrollHeight + 250 + "px"; 
-        }
-        
-        function loadNotes() {
-            let savedNotes = JSON.parse(localStorage.getItem("notes")) || [];
-            savedNotes.forEach(note => newNote(note.text, note.color));
+            .then(data => {
+                console.log("server response: ", data);
+                
+            })
         }
     </script>
 
