@@ -4,49 +4,166 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Landing Page</title>
-    <link rel="stylesheet" href="..\static\style.css">
+    <link rel="stylesheet" href="../static/style.css">
 </head>
 <body>
-     <!-- Header Section -->
-          <header class="header">
-            <div class="logo">
-                <img src="..\static\images\logo.png" alt="Logo">
+    <!-- Header Section -->
+    <header class="header">
+        <div class="logo">
+            <img src="../static/images/logo.png" alt="Logo">
+        </div>
+        <nav id="nav-links">
+            <a href="index.html">Home</a>
+            <div class="dropdown">
+                <a href="features.html" class="test">Features</a>
+                <div class="dropdown-content">
+                    <a href="progress.html">Progress</a>
+                    <a href="daily.html">Daily Check-in</a>
+                    <a href="todo.html">Tasks</a>
+                    <a href="habit.html">Habits</a>
+                    <a href="timer.html">Timer</a>
+                    <a href="notes.html">Notes</a>
+                    <a href="mood.html">Mood Tracker</a>
+                </div>
             </div>
-            <nav id="nav-links">
-                <a href="index.html">Home</a>
-                <div class="dropdown">
-                    <a href="features.html" class="test">Features</a>
-                    <div class="dropdown-content">
-                        
-                            <a href="progress.html">Progress</a>
-                            <a href="daily.html">Daily Check-in</a>
-                            <a href="todo.html">Tasks</a>
-                            <a href="habit.html">Habits</a>
-                            <a href="timer.html">Timer</a>
-                            <a href="notes.html">Notes</a>
-                            <a href="mood.html">Mood Tracker</a>
-                    </div>
-                  </div>
-                <a href="profile.html">Profile</a>
-            
-        </header>
+            <a href="profile.html">Profile</a>
+        </nav>
+    </header>
 
-wyd here
-    
+    <div class="profile-container">
+        
+        <div class="profile-container">
+            <div class="month-nav">
+                <button id="prev-month">&lt;</button>  
+                <button id="month-display">March 2025</button> 
+                <button id="next-month">&gt;</button>  
+            </div>
+            <div class="calendar" id="calendar"></div>
+            <div class="records">Click on a day to see the record</div>
+        </div>
+    </div>
 
     <!-- Footer Section -->
     <footer class="footer">
-            <div class="social-media">
-                <p>Follow us:</p>
-                <a href="https://www.facebook.com" target="_blank">Facebook</a>
-                <a href="https://www.twitter.com" target="_blank">Twitter</a>
-                <a href="https://www.instagram.com" target="_blank">Instagram</a>
-            </div>
+        <div class="social-media">
+            <p>Follow us:</p>
+            <a href="https://www.facebook.com" target="_blank">Facebook</a>
+            <a href="https://www.twitter.com" target="_blank">Twitter</a>
+            <a href="https://www.instagram.com" target="_blank">Instagram</a>
         </div>
     </footer>
-    
-    <section class="background">
-    </section>
-    
+
+    <div class="background"></div>
+
+    <script>
+        let today = new Date();
+        let currentMonth = today.getMonth() + 1; // 1-based index
+        let currentYear = today.getFullYear();
+        const day = today.getDate();
+        const m_31 = new Set([1, 3, 5, 7, 8, 10, 12]);
+
+        const calendarDiv = document.getElementById("calendar");
+        const monthDisplay = document.getElementById("month-display");
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function updateCalendar() {
+            calendarDiv.innerHTML = ""; // Clear previous month
+            monthDisplay.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+
+            function printMonth(n) {
+                for (let i = 1; i <= n; i++) {
+                    const dayDiv = document.createElement("div");
+                    dayDiv.classList.add("day");
+                    dayDiv.textContent = i;
+
+                    const isToday = i === day && currentMonth === today.getMonth() + 1 && currentYear === today.getFullYear();
+                    if (isToday) {
+                        dayDiv.classList.add("today");
+                    }
+
+                    // Add event listener to send date when clicked
+                    dayDiv.addEventListener("click", function () {
+                        let selectedDate = formatDate(new Date(currentYear, currentMonth - 1, i));
+                        getsummary(selectedDate);
+                    });
+
+                    calendarDiv.appendChild(dayDiv);
+                }
+            }
+
+            let leap = (currentYear % 4 === 0 && currentYear % 100 !== 0) || (currentYear % 400 === 0);
+            if (m_31.has(currentMonth)) {
+                printMonth(31);
+            } else if (currentMonth === 2) {
+                printMonth(leap ? 29 : 28);
+            } else {
+                printMonth(30);
+            }
+        }
+
+        document.getElementById("prev-month").addEventListener("click", () => {
+            currentMonth--;
+            if (currentMonth < 1) {
+                currentMonth = 12;
+                currentYear--;
+            }
+            updateCalendar();
+        });
+
+        document.getElementById("next-month").addEventListener("click", () => {
+            currentMonth++;
+            if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear++;
+            }
+            updateCalendar();
+        });
+
+        document.getElementById("month-display").addEventListener("click", () => {
+            currentMonth = today.getMonth() + 1;
+            currentYear = today.getFullYear();
+            updateCalendar();
+        });
+
+ 
+        function getsummary(date) {
+            fetch(`http://127.0.0.1:5000/gemini?date=${date}`, { method: 'GET' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Suggestions for", date, ":", data);
+                    const recordsDiv = document.querySelector(".records");
+                    if (data.summary) {
+                        recordsDiv.textContent = data.summary; // Display the summary
+                    } else {
+                        recordsDiv.textContent = "No suggestions available for this date.";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                    const recordsDiv = document.querySelector(".records");
+                    recordsDiv.textContent = "Click on a day to get the summary!";
+                });
+        }
+
+        window.onload = function () {
+            
+            updateCalendar();
+        };
+    </script>
 </body>
 </html>
