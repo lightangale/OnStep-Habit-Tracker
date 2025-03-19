@@ -15,14 +15,24 @@ import imblearn
 
 app = Flask(__name__)
 CORS(app) 
-# Database connection
+
+import mysql.connector
+from urllib.parse import urlparse
+
 def get_db_connection():
+    db_url = os.getenv("DATABASE_URL", "mysql://root:oCqyAePlnbDqYswbQgiyTGdPeCtZvOyS@trolley.proxy.rlwy.net:41924/railway")
+    
+    # Parse the URL
+    parsed_url = urlparse(db_url)
+    
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="Mysql@3306",
-        database="shruti"
+        host=parsed_url.hostname,
+        user=parsed_url.username,
+        password=parsed_url.password,
+        database=parsed_url.path.lstrip('/'),
+        port=parsed_url.port
     )
+
 
 # Home route (default to index.html)
 @app.route('/')
