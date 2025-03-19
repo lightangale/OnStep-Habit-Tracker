@@ -1,0 +1,7 @@
+Flask
+mysql-connector-python
+matplotlib
+numpy
+flask-cors
+imbalanced-learn
+google-generativeai
