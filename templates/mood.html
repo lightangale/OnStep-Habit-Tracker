@@ -80,7 +80,11 @@
             console.log("Form Submitted:", response);
             alert("Your responses have been recorded!");
             
-            fetch("http://127.0.0.1:5000/mood_tracker", {
+            const BASE_URL = window.location.hostname === "localhost"
+                ? "http://127.0.0.1:5000"  // Local Flask server
+                : "https://your-render-app.onrender.com";  // Render deployed Flask server
+            
+            fetch(`${BASE_URL}/mood_tracker`,{
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
             body: JSON.stringify(response) })
@@ -93,6 +97,12 @@
 
             .then(data => {
                 console.log("server response: ", data);
+                
+                document.getElementById('activities').value = "";
+                document.getElementById('satisfaction').value = "";
+                document.getElementById('interest').value = "";
+                document.getElementById('feelings').value = "";
+                document.getElementById('selfCare').value = "";
                 
             })
         }
