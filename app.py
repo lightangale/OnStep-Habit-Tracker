@@ -249,12 +249,14 @@ import google.generativeai as genai
 import os
 
 
-os.environ['GOOGLE_API_KEY'] ="YOUR_API_KEY
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 
-def summarize_with_gemini(input_text, api_key):
+def summarize_with_gemini(input_text):
     try:
-        genai.configure(api_key=api_key)
+        if not GOOGLE_API_KEY:
+            raise ValueError("GOOGLE_API_KEY is not set in the environment variables.")
+        genai.configure(api_key=GOOGLE_API_KEY)
         model = genai.GenerativeModel("gemini-1.5-flash-latest")
         
         prompt = (
@@ -278,10 +280,7 @@ def summarize_with_gemini(input_text, api_key):
 
 @app.route("/gemini", methods=["GET"])
 def gemini_summary():
-    api_key = os.environ.get("GOOGLE_API_KEY")
-    
-    if api_key is None:
-        return jsonify({"error": "GOOGLE_API_KEY not set"}), 500
+
 
     date = request.args.get("date")  
     print(date)
@@ -332,7 +331,7 @@ def gemini_summary():
     )
 
     # Generate summary using Gemini
-    summary = summarize_with_gemini(input_text, api_key)
+    summary = summarize_with_gemini(input_text)
 
     if summary:
         return jsonify({"summary": summary})
