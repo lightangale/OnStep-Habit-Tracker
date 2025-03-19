@@ -137,7 +137,11 @@
 
  
         function getsummary(date) {
-            fetch(`http://127.0.0.1:5000/gemini?date=${date}`, { method: 'GET' })
+            const BASE_URL = window.location.hostname === "localhost"
+                ? "http://127.0.0.1:5000"  // Local Flask server
+                : "https://your-render-app.onrender.com";  // Render deployed Flask server
+            
+            fetch(`${BASE_URL}/gemini?date=${date}`, { method: 'GET' })
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
