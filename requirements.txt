@@ -6,3 +6,6 @@ flask-cors
 imbalanced-learn
 google-generativeai
 gunicorn
+python-dotenv
+pandas 
+scipy  
