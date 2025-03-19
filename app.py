@@ -20,7 +20,7 @@ import mysql.connector
 from urllib.parse import urlparse
 
 def get_db_connection():
-    db_url = os.getenv("DATABASE_URL", "mysql://root:oCqyAePlnbDqYswbQgiyTGdPeCtZvOyS@trolley.proxy.rlwy.net:41924/railway")
+    db_url = os.getenv("DATABASE_URL", "mysql://root:SvqmJcTJZTNZZQvHAhDuLgyiABmRVjyN@trolley.proxy.rlwy.net:18183/railway")
     
     # Parse the URL
     parsed_url = urlparse(db_url)
